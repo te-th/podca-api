@@ -2,8 +2,8 @@ package podca_api
 
 import (
 	"golang.org/x/net/context"
-	"github.com/golang/appengine/datastore"
-	"github.com/golang/appengine/log"
+	"google.golang.org/appengine/datastore"
+	"google.golang.org/appengine/log"
 )
 
 func NewFeedRepo() *FeedRepo {
@@ -15,6 +15,19 @@ type FeedRepo struct {
 }
 
 func (feedRepo *FeedRepo) getAll(ctx context.Context) ([]Feed, error){
+	feeds := []Feed{}
+	ks, err := datastore.NewQuery("Feed").Ancestor(feedKey(ctx)).GetAll(ctx, &feeds)
+	if err != nil {
+		log.Infof(ctx, "query failed with: %v",err)
+		return nil, err
+	}
+	for i := 0; i < len(feeds); i++ {
+		feeds[i].Id = ks[i].IntID()
+	}
+	return feeds, nil
+}
+
+func (feedRepo *FeedRepo) getAllOverview(ctx context.Context) ([]Feed, error){
 	feeds := []Feed{}
 	ks, err := datastore.NewQuery("Feed").Ancestor(feedKey(ctx)).GetAll(ctx, &feeds)
 	if err != nil {
