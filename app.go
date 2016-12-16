@@ -15,7 +15,6 @@ func init() {
 	router := mux.NewRouter()
 
 	router.HandleFunc("/", rootHandler())
-	//router.HandleFunc("/parse", feedParseHandler(feedRepo))
 	router.HandleFunc("/podcasts/search", podcastSearchHandler(searchEngine, feedWorker))
 	router.HandleFunc("/feeds", feedHandler(feedRepo))
 	router.HandleFunc("/feeds/{feedId}", feedHandler(feedRepo))
