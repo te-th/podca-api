@@ -5,9 +5,9 @@ import (
 	"io/ioutil"
 	"encoding/json"
 	"golang.org/x/net/context"
-	"github.com/golang/appengine/urlfetch"
 	"encoding/xml"
-	"github.com/golang/appengine/log"
+	"google.golang.org/appengine/urlfetch"
+	"google.golang.org/appengine/log"
 )
 
 //type FeedWorker interface {
@@ -44,7 +44,7 @@ func (worker *FeedWorker) FetchData(ctx context.Context, url string) ([]byte, er
 	return xmlResponse, nil
 }
 
-func (worker *FeedWorker)  Retrieve(ctx context.Context, podcast Podcast) {
+func (worker *FeedWorker) Retrieve(ctx context.Context, podcast Podcast) {
 
 	data, fetcherr := worker.FetchData(ctx, podcast.FeedUrl); if fetcherr != nil {
 		panic(fetcherr)

@@ -1,33 +1,33 @@
 package podca_api
 
 type Feed struct {
-	Id 		int64		`datastore:"-"`
-	Title 		string 		`xml:"title"`
-	Link 		string 		`xml:"link"`
-	Description 	string		`xml:"description" datastore:",noindex"`
-	Language 	string		`xml:"language"`
-	Copyright	string		`xml:"copyright"`
-	PubDate		string		`xml:"pubDate"`
-	Image 		Image		`xml:"image"`
-	Episodes	[]Episode	`xml:"item"`
+	Id 		int64		`json:"id" datastore:"-"`
+	Title 		string 		`json:"title" xml:"title"`
+	Link 		string 		`json:"link" xml:"link"`
+	Description 	string		`json:"description" xml:"description" datastore:",noindex"`
+	Language 	string		`json:"language" xml:"language"`
+	Copyright	string		`json:"copyright" xml:"copyright"`
+	PubDate		string		`json:"pubDate" xml:"pubDate"`
+	Image 		Image		`json:"image" xml:"image"`
+	Episodes	[]Episode	`json:"item" xml:"item"`
 }
 
 
 type Episode struct {
 	//Id 		int64	`datastore:"-"`
 	//sFeedId		int64
-	Title 		string 	`xml:"title"`
-	Description 	string	`xml:"description" datastore:",noindex"`
-	Author		string	`xml:"author"`
-	Guid		string	`xml:"guid"`
-	PubDate		string	`xml:"pubDate"`
+	Title 		string 	`json:"title" xml:"title"`
+	Description 	string	`json:"description" xml:"description" datastore:",noindex"`
+	Author		string	`json:"author" xml:"author"`
+	Guid		string	`json:"guid" xml:"guid"`
+	PubDate		string	`json:"pubDate" xml:"pubDate"`
 }
 
 type Image struct {
 	//Id 	int64	`datastore:"-"`
-	Url 	string	`xml:"url"`
-	Title 	string	`xml:"title"`
-	Link 	string	`xml:"link"`
+	Url 	string	`json:"url" xml:"url"`
+	Title 	string	`json:"title" xml:"title"`
+	Link 	string	`json:"link" xml:"link"`
 }
 
 
