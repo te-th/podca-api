@@ -23,8 +23,6 @@ func rootHandler() http.HandlerFunc {
 
 func podcastSearchHandler(searchEngine *ITunesSearchEngine, worker *FeedWorker) http.HandlerFunc {
 
-	//var laterFunc = delay.Func("key", worker.Retrieve())
-
 	return func(w http.ResponseWriter, r *http.Request) {
 
 		ctx := appengine.NewContext(r)
@@ -70,7 +68,7 @@ func feedHandler(feedRepo *FeedRepo) http.HandlerFunc {
 					panic(jsonerr)
 				}
 			} else {
-				result, _ :=feedRepo.getAllOverview(ctx)
+				result, _ :=feedRepo.getAll(ctx)
 				w.WriteHeader(http.StatusOK)
 				w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 				if jsonerr := json.NewEncoder(w).Encode(result); jsonerr != nil {
