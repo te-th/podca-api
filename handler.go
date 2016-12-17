@@ -20,7 +20,7 @@ func rootHandler() http.HandlerFunc {
 }
 
 
-func podcastSearchHandler(searchEngine *ITunesSearchEngine, task FeedTask) http.HandlerFunc {
+func podcastSearchHandler(searchEngine PodcastSearchEngine, task FeedTask) http.HandlerFunc {
 
 	return func(w http.ResponseWriter, r *http.Request) {
 
