@@ -6,17 +6,19 @@ import (
 )
 
 func init() {
-	// Dependencies
-	feedRepo := NewFeedRepo()
-	searchEngine := NewSearchEngine()
-	feedWorker := NewFeedWorker(feedRepo)
 
+
+	// Dependencies PodcastSearcher
+	feedRepo := NewFeedRepo()
+	feedWorker := NewFeedTaskWorker(feedRepo)
+	searchEngine := NewSearchEngine()
+
+	podcastSearcher := NewPodcastSearcher(feedWorker, searchEngine)
 
 	router := mux.NewRouter()
 
 	router.HandleFunc("/", rootHandler())
-	//router.HandleFunc("/parse", feedParseHandler(feedRepo))
-	router.HandleFunc("/podcasts/search", podcastSearchHandler(searchEngine, feedWorker))
+	router.HandleFunc("/podcasts/search", podcastSearchHandler(podcastSearcher))
 	router.HandleFunc("/feeds", feedHandler(feedRepo))
 	router.HandleFunc("/feeds/{feedId}", feedHandler(feedRepo))
 	router.HandleFunc("/feed/{feedId}/episodes/{episodeId}", feedEpisodeHandler())
