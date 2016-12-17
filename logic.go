@@ -10,21 +10,22 @@ import (
 	"google.golang.org/appengine/log"
 )
 
-//type FeedWorker interface {
-//	Retrieve(ctx context.Context, feedUrl string)
-//
-//}
-type FeedWorker struct {
+type FeedTask interface {
+	FetchAndStore(ctx context.Context,  podcast Podcast)
+
+}
+
+type FeedTaskWorker struct {
 	FeedRepo *FeedRepo
 }
 
-func NewFeedWorker(feedRepo *FeedRepo) *FeedWorker {
-	return &FeedWorker{
+func NewFeedTaskWorker(feedRepo *FeedRepo) *FeedTaskWorker {
+	return &FeedTaskWorker{
 		FeedRepo: feedRepo,
 	}
 }
 
-func (worker *FeedWorker) FetchData(ctx context.Context, url string) ([]byte, error) {
+func (worker *FeedTaskWorker) FetchData(ctx context.Context, url string) ([]byte, error) {
 
 	client := urlfetch.Client(ctx)
 	res, err := client.Get(url)
@@ -44,7 +45,7 @@ func (worker *FeedWorker) FetchData(ctx context.Context, url string) ([]byte, er
 	return xmlResponse, nil
 }
 
-func (worker *FeedWorker) Retrieve(ctx context.Context, podcast Podcast) {
+func (worker *FeedTaskWorker) FetchAndStore(ctx context.Context, podcast Podcast) {
 
 	data, fetcherr := worker.FetchData(ctx, podcast.FeedUrl); if fetcherr != nil {
 		panic(fetcherr)

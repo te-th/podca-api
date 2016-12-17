@@ -8,7 +8,6 @@ import(
 	"google.golang.org/appengine"
 	"google.golang.org/appengine/log"
 	"google.golang.org/appengine/delay"
-
 	"golang.org/x/net/context"
 )
 
@@ -21,7 +20,7 @@ func rootHandler() http.HandlerFunc {
 }
 
 
-func podcastSearchHandler(searchEngine *ITunesSearchEngine, worker *FeedWorker) http.HandlerFunc {
+func podcastSearchHandler(searchEngine *ITunesSearchEngine, task FeedTask) http.HandlerFunc {
 
 	return func(w http.ResponseWriter, r *http.Request) {
 
@@ -32,12 +31,11 @@ func podcastSearchHandler(searchEngine *ITunesSearchEngine, worker *FeedWorker) 
 		}
 
 		for _, podcast := range podcasts {
-			var delayedWorker = delay.Func("feedWorker", func(ctx context.Context, podcast Podcast){
-				worker.Retrieve(ctx, podcast)
+			var delayedTask = delay.Func("feedWorker", func(ctx context.Context, podcast Podcast){
+				task.FetchAndStore(ctx, podcast)
 			})
 
-			delayedWorker.Call(ctx, podcast)
-
+			delayedTask.Call(ctx, podcast)
 		}
 
 		w.WriteHeader(http.StatusOK)
@@ -78,12 +76,15 @@ func feedHandler(feedRepo *FeedRepo) http.HandlerFunc {
 
 		case "PUT":
 			// update
+			w.Write([]byte("NOT YET IMPLEMENTED "))
 			w.WriteHeader(http.StatusNoContent)
 		case "POST":
 			// create
+			w.Write([]byte("NOT YET IMPLEMENTED "))
 			w.WriteHeader(http.StatusNoContent)
 		case "DELETE":
 			// remove
+			w.Write([]byte("NOT YET IMPLEMENTED "))
 			w.WriteHeader(http.StatusNoContent)
 
 		}
