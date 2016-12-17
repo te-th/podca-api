@@ -8,7 +8,42 @@ import (
 	"encoding/xml"
 	"google.golang.org/appengine/urlfetch"
 	"google.golang.org/appengine/log"
+	"google.golang.org/appengine/delay"
 )
+
+
+type PodcastSearch interface {
+	Search(ctx context.Context, term string) ([]Podcast, error)
+}
+
+type PodcastSearcher struct {
+	FeedTask FeedTask
+	SearchEngine PodcastSearchEngine
+}
+
+func NewPodcastSearcher(feedTask FeedTask, searchEngine PodcastSearchEngine) *PodcastSearcher {
+	return &PodcastSearcher{
+		FeedTask: feedTask,
+		SearchEngine: searchEngine,
+	}
+}
+
+func (podcastSearcher *PodcastSearcher) Search(ctx context.Context, term string) ([]Podcast, error) {
+	podcasts, err := podcastSearcher.SearchEngine.Search(ctx, term) ; if err != nil {
+		return nil, err
+	}
+
+	for _, podcast := range podcasts {
+		var delayedTask = delay.Func("feedWorker", func(ctx context.Context, podcast Podcast){
+			podcastSearcher.FeedTask.FetchAndStore(ctx, podcast)
+		})
+
+		delayedTask.Call(ctx, podcast)
+	}
+
+	return podcasts, nil
+
+}
 
 type FeedTask interface {
 	FetchAndStore(ctx context.Context,  podcast Podcast)
