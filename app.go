@@ -9,7 +9,7 @@ func init() {
 	// Dependencies
 	feedRepo := NewFeedRepo()
 	searchEngine := NewSearchEngine()
-	feedWorker := NewFeedWorker(feedRepo)
+	feedWorker := NewFeedTaskWorker(feedRepo)
 
 
 	router := mux.NewRouter()
