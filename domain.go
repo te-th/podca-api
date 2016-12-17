@@ -9,7 +9,7 @@ type Feed struct {
 	Copyright	string		`json:"copyright" xml:"copyright"`
 	PubDate		string		`json:"pubDate" xml:"pubDate"`
 	Image 		Image		`json:"image" xml:"image"`
-	Episodes	[]Episode	`json:"item" xml:"item"`
+	Episodes	[]Episode	`json:"episodes" xml:"item"`
 }
 
 
