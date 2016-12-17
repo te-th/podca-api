@@ -1,30 +1,29 @@
-package podca_api
+package api
 
-import(
-	"net/http"
+import (
 	"encoding/json"
-	"github.com/gorilla/mux"
+	"net/http"
 	"strconv"
+
+	"github.com/gorilla/mux"
+	"github.com/te-th/podca-api/domain"
 	"google.golang.org/appengine"
 	"google.golang.org/appengine/log"
 )
 
-func rootHandler() http.HandlerFunc {
+func RootHandler() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-
 		w.Write([]byte("API Podca "))
 	}
-
 }
 
-
-func podcastSearchHandler(podcastSearcher PodcastSearch) http.HandlerFunc {
-
+func PodcastSearchHandler(podcastSearcher PodcastSearch) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 
 		ctx := appengine.NewContext(r)
 		var term = r.FormValue("term")
-		podcasts, err := podcastSearcher.Search(ctx, term) ; if err != nil {
+		podcasts, err := podcastSearcher.Search(ctx, term)
+		if err != nil {
 			w.WriteHeader(http.StatusInternalServerError)
 			panic(err)
 		}
@@ -36,11 +35,9 @@ func podcastSearchHandler(podcastSearcher PodcastSearch) http.HandlerFunc {
 			panic(jsonerr)
 		}
 	}
-
 }
 
-
-func feedHandler(feedRepo FeedRepository) http.HandlerFunc {
+func FeedHandler(feedRepo domain.FeedRepository) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 
 		switch r.Method {
@@ -51,14 +48,14 @@ func feedHandler(feedRepo FeedRepository) http.HandlerFunc {
 			feedId, _ := strconv.Atoi(vars["feedId"])
 			if feedId > 0 {
 				log.Infof(ctx, "FEEDID> %d", int64(feedId))
-				result, _ := feedRepo.get(ctx, int64(feedId))
+				result, _ := feedRepo.Get(ctx, int64(feedId))
 				w.WriteHeader(http.StatusOK)
 				w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 				if jsonerr := json.NewEncoder(w).Encode(result); jsonerr != nil {
 					panic(jsonerr)
 				}
 			} else {
-				result, _ :=feedRepo.getAll(ctx)
+				result, _ := feedRepo.GetAll(ctx)
 				w.WriteHeader(http.StatusOK)
 				w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 				if jsonerr := json.NewEncoder(w).Encode(result); jsonerr != nil {
@@ -78,21 +75,18 @@ func feedHandler(feedRepo FeedRepository) http.HandlerFunc {
 			// remove
 			w.Write([]byte("NOT YET IMPLEMENTED "))
 			w.WriteHeader(http.StatusNoContent)
-
 		}
-
 	}
 }
 
-func feedImageHandler() http.HandlerFunc {
+func FeedImageHandler() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		w.Write([]byte("API Podca "))
 	}
 }
 
-func feedEpisodeHandler() http.HandlerFunc {
+func FeedEpisodeHandler() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		w.Write([]byte("API Podca "))
 	}
 }
-
