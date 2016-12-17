@@ -11,7 +11,14 @@ import (
 	"google.golang.org/appengine/delay"
 )
 
+type FeedCore interface {
 
+}
+
+
+
+// PodcastSearch is the facade that handle the usecase
+// of searching podcast for a given term and storing the results into the datastore
 type PodcastSearch interface {
 	Search(ctx context.Context, term string) ([]Podcast, error)
 }
@@ -51,26 +58,23 @@ type FeedTask interface {
 }
 
 type FeedTaskWorker struct {
-	FeedRepo *FeedRepo
+	FeedRepository FeedRepository
 }
 
-func NewFeedTaskWorker(feedRepo *FeedRepo) *FeedTaskWorker {
+func NewFeedTaskWorker(feedRepo FeedRepository) *FeedTaskWorker {
 	return &FeedTaskWorker{
-		FeedRepo: feedRepo,
+		FeedRepository: feedRepo,
 	}
 }
 
 func (worker *FeedTaskWorker) FetchData(ctx context.Context, url string) ([]byte, error) {
 
 	client := urlfetch.Client(ctx)
-	res, err := client.Get(url)
-
-	if err != nil {
+	res, err := client.Get(url); if err != nil {
 		return  nil, err
 	}
 
-	log.Infof(ctx, "HTTP STATUS> %d ", res.StatusCode)
-	log.Infof(ctx, "HTTP STATUS> %s ", res.Header)
+	log.Infof(ctx, "FETCHED URL: %s  WITH HTTP STATUSCODE %d ", url, res.StatusCode)
 
 	xmlResponse, err := ioutil.ReadAll(res.Body)
 	res.Body.Close()
@@ -98,10 +102,11 @@ func (worker *FeedTaskWorker) FetchAndStore(ctx context.Context, podcast Podcast
 	}
 
 	var feed = &rss.Feed
+
 	// Use CollectionId as Feed.id
 	feed.Id = podcast.CollectionId
 
-	worker.FeedRepo.save(ctx,feed)
+	worker.FeedRepository.save(ctx,feed)
 }
 
 type PodcastSearchEngine interface {
@@ -121,9 +126,7 @@ func (searchEngine *ITunesSearchEngine) Search(ctx context.Context, term string)
 
 	var urlString = "https://itunes.apple.com/search?term="+ url.QueryEscape(term) + "&country=DE&entity=podcast"
 
-	res, err := client.Get(urlString)
-
-	if err != nil {
+	res, err := client.Get(urlString); if err != nil {
 		return  nil, err
 	}
 
