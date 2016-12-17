@@ -1,47 +1,48 @@
-package podca_api
+package api
 
 import (
-	"net/url"
-	"io/ioutil"
 	"encoding/json"
-	"golang.org/x/net/context"
 	"encoding/xml"
-	"google.golang.org/appengine/urlfetch"
-	"google.golang.org/appengine/log"
+	"io/ioutil"
+	"net/url"
+
+	"golang.org/x/net/context"
+
+	"github.com/te-th/podca-api/domain"
 	"google.golang.org/appengine/delay"
+	"google.golang.org/appengine/log"
+	"google.golang.org/appengine/urlfetch"
 )
 
 type FeedCore interface {
-
 }
-
-
 
 // PodcastSearch is the facade that handle the usecase
 // of searching podcast for a given term and storing the results into the datastore
 type PodcastSearch interface {
-	Search(ctx context.Context, term string) ([]Podcast, error)
+	Search(ctx context.Context, term string) ([]domain.Podcast, error)
 }
 
 type PodcastSearcher struct {
-	FeedTask FeedTask
+	FeedTask     FeedTask
 	SearchEngine PodcastSearchEngine
 }
 
 func NewPodcastSearcher(feedTask FeedTask, searchEngine PodcastSearchEngine) *PodcastSearcher {
 	return &PodcastSearcher{
-		FeedTask: feedTask,
+		FeedTask:     feedTask,
 		SearchEngine: searchEngine,
 	}
 }
 
-func (podcastSearcher *PodcastSearcher) Search(ctx context.Context, term string) ([]Podcast, error) {
-	podcasts, err := podcastSearcher.SearchEngine.Search(ctx, term) ; if err != nil {
+func (podcastSearcher *PodcastSearcher) Search(ctx context.Context, term string) ([]domain.Podcast, error) {
+	podcasts, err := podcastSearcher.SearchEngine.Search(ctx, term)
+	if err != nil {
 		return nil, err
 	}
 
 	for _, podcast := range podcasts {
-		var delayedTask = delay.Func("feedWorker", func(ctx context.Context, podcast Podcast){
+		var delayedTask = delay.Func("feedWorker", func(ctx context.Context, podcast domain.Podcast) {
 			podcastSearcher.FeedTask.FetchAndStore(ctx, podcast)
 		})
 
@@ -53,15 +54,14 @@ func (podcastSearcher *PodcastSearcher) Search(ctx context.Context, term string)
 }
 
 type FeedTask interface {
-	FetchAndStore(ctx context.Context,  podcast Podcast)
-
+	FetchAndStore(ctx context.Context, podcast domain.Podcast)
 }
 
 type FeedTaskWorker struct {
-	FeedRepository FeedRepository
+	FeedRepository domain.FeedRepository
 }
 
-func NewFeedTaskWorker(feedRepo FeedRepository) *FeedTaskWorker {
+func NewFeedTaskWorker(feedRepo domain.FeedRepository) *FeedTaskWorker {
 	return &FeedTaskWorker{
 		FeedRepository: feedRepo,
 	}
@@ -70,8 +70,9 @@ func NewFeedTaskWorker(feedRepo FeedRepository) *FeedTaskWorker {
 func (worker *FeedTaskWorker) FetchData(ctx context.Context, url string) ([]byte, error) {
 
 	client := urlfetch.Client(ctx)
-	res, err := client.Get(url); if err != nil {
-		return  nil, err
+	res, err := client.Get(url)
+	if err != nil {
+		return nil, err
 	}
 
 	log.Infof(ctx, "FETCHED URL: %s  WITH HTTP STATUSCODE %d ", url, res.StatusCode)
@@ -79,24 +80,26 @@ func (worker *FeedTaskWorker) FetchData(ctx context.Context, url string) ([]byte
 	xmlResponse, err := ioutil.ReadAll(res.Body)
 	res.Body.Close()
 	if err != nil {
-		return  nil, err
+		return nil, err
 	}
 	return xmlResponse, nil
 }
 
-func (worker *FeedTaskWorker) FetchAndStore(ctx context.Context, podcast Podcast) {
+func (worker *FeedTaskWorker) FetchAndStore(ctx context.Context, podcast domain.Podcast) {
 
-	data, fetcherr := worker.FetchData(ctx, podcast.FeedUrl); if fetcherr != nil {
+	data, fetcherr := worker.FetchData(ctx, podcast.FeedURL)
+	if fetcherr != nil {
 		panic(fetcherr)
 	}
 
 	type Rss struct {
-		Feed	Feed `xml:"channel"`
+		Feed domain.Feed `xml:"channel"`
 	}
 
 	var rss Rss
 
-	xmlerr := xml.Unmarshal(data, &rss); if xmlerr != nil {
+	xmlerr := xml.Unmarshal(data, &rss)
+	if xmlerr != nil {
 		panic(xmlerr)
 		return
 	}
@@ -104,13 +107,13 @@ func (worker *FeedTaskWorker) FetchAndStore(ctx context.Context, podcast Podcast
 	var feed = &rss.Feed
 
 	// Use CollectionId as Feed.id
-	feed.Id = podcast.CollectionId
+	feed.ID = podcast.CollectionID
 
-	worker.FeedRepository.save(ctx,feed)
+	worker.FeedRepository.Save(ctx, feed)
 }
 
 type PodcastSearchEngine interface {
-	Search(ctx context.Context, term string) ([]Podcast, error)
+	Search(ctx context.Context, term string) ([]domain.Podcast, error)
 }
 
 func NewSearchEngine() *ITunesSearchEngine {
@@ -118,35 +121,33 @@ func NewSearchEngine() *ITunesSearchEngine {
 }
 
 type ITunesSearchEngine struct {
-
 }
 
-func (searchEngine *ITunesSearchEngine) Search(ctx context.Context, term string) ([]Podcast, error) {
+func (searchEngine *ITunesSearchEngine) Search(ctx context.Context, term string) ([]domain.Podcast, error) {
 	client := urlfetch.Client(ctx)
 
-	var urlString = "https://itunes.apple.com/search?term="+ url.QueryEscape(term) + "&country=DE&entity=podcast"
+	var urlString = "https://itunes.apple.com/search?term=" + url.QueryEscape(term) + "&country=DE&entity=podcast"
 
-	res, err := client.Get(urlString); if err != nil {
-		return  nil, err
+	res, err := client.Get(urlString)
+	if err != nil {
+		return nil, err
 	}
 
 	jsonResponse, err := ioutil.ReadAll(res.Body)
 	res.Body.Close()
 	if err != nil {
-		return  nil, err
+		return nil, err
 	}
 
 	type SearchResponse struct {
 		ResultCount int
-		Results []Podcast
+		Results     []domain.Podcast
 	}
 
 	var result SearchResponse
 	if err := json.Unmarshal(jsonResponse, &result); err != nil {
-		return  nil, err
+		return nil, err
 	}
 
-	var podcasts []Podcast = result.Results
-
-	return podcasts, nil
+	return result.Results, nil
 }
