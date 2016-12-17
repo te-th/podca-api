@@ -7,8 +7,6 @@ import(
 	"strconv"
 	"google.golang.org/appengine"
 	"google.golang.org/appengine/log"
-	"google.golang.org/appengine/delay"
-	"golang.org/x/net/context"
 )
 
 func rootHandler() http.HandlerFunc {
@@ -20,27 +18,21 @@ func rootHandler() http.HandlerFunc {
 }
 
 
-func podcastSearchHandler(searchEngine PodcastSearchEngine, task FeedTask) http.HandlerFunc {
+func podcastSearchHandler(podcastSearcher PodcastSearch) http.HandlerFunc {
 
 	return func(w http.ResponseWriter, r *http.Request) {
 
 		ctx := appengine.NewContext(r)
 		var term = r.FormValue("term")
-		podcasts, err := searchEngine.Search(ctx, term) ; if err != nil {
+		podcasts, err := podcastSearcher.Search(ctx, term) ; if err != nil {
+			w.WriteHeader(http.StatusInternalServerError)
 			panic(err)
-		}
-
-		for _, podcast := range podcasts {
-			var delayedTask = delay.Func("feedWorker", func(ctx context.Context, podcast Podcast){
-				task.FetchAndStore(ctx, podcast)
-			})
-
-			delayedTask.Call(ctx, podcast)
 		}
 
 		w.WriteHeader(http.StatusOK)
 		w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 		if jsonerr := json.NewEncoder(w).Encode(podcasts); jsonerr != nil {
+			w.WriteHeader(http.StatusInternalServerError)
 			panic(jsonerr)
 		}
 	}
