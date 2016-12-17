@@ -6,6 +6,12 @@ import (
 	"google.golang.org/appengine/log"
 )
 
+type FeedRepository interface {
+	save(ctx context.Context, feed *Feed) (*Feed, error)
+	get(ctx context.Context, id int64) (*Feed, error)
+	getAll(ctx context.Context) ([]Feed, error)
+}
+
 func NewFeedRepo() *FeedRepo {
 	return &FeedRepo{}
 }
@@ -15,19 +21,6 @@ type FeedRepo struct {
 }
 
 func (feedRepo *FeedRepo) getAll(ctx context.Context) ([]Feed, error){
-	feeds := []Feed{}
-	ks, err := datastore.NewQuery("Feed").Ancestor(feedKey(ctx)).GetAll(ctx, &feeds)
-	if err != nil {
-		log.Infof(ctx, "query failed with: %v",err)
-		return nil, err
-	}
-	for i := 0; i < len(feeds); i++ {
-		feeds[i].Id = ks[i].IntID()
-	}
-	return feeds, nil
-}
-
-func (feedRepo *FeedRepo) getAllOverview(ctx context.Context) ([]Feed, error){
 	feeds := []Feed{}
 	ks, err := datastore.NewQuery("Feed").Ancestor(feedKey(ctx)).GetAll(ctx, &feeds)
 	if err != nil {
