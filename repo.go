@@ -6,6 +6,12 @@ import (
 	"google.golang.org/appengine/log"
 )
 
+type FeedRepository interface {
+	save(ctx context.Context, feed *Feed) (*Feed, error)
+	get(ctx context.Context, id int64) (*Feed, error)
+	getAll(ctx context.Context) ([]Feed, error)
+}
+
 func NewFeedRepo() *FeedRepo {
 	return &FeedRepo{}
 }

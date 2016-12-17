@@ -40,7 +40,7 @@ func podcastSearchHandler(podcastSearcher PodcastSearch) http.HandlerFunc {
 }
 
 
-func feedHandler(feedRepo *FeedRepo) http.HandlerFunc {
+func feedHandler(feedRepo FeedRepository) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 
 		switch r.Method {
