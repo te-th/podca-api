@@ -3,6 +3,7 @@
 #Start:
 
 ```go
+cd app
 goapp serve
 ```
 
