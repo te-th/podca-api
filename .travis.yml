@@ -1,2 +1,8 @@
+sudo: false
 language: go
+install:
+    - go get -t github.com/alecthomas/gometalinter
+    - gometalinter --install --update
+go: 1.7
+
 
