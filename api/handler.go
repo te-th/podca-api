@@ -20,7 +20,6 @@ import (
 	"encoding/json"
 	"net/http"
 	"strconv"
-
 	"github.com/gorilla/mux"
 	"github.com/te-th/podca-api/domain"
 	"google.golang.org/appengine"
@@ -35,20 +34,27 @@ func RootHandler() http.HandlerFunc {
 
 func PodcastSearchHandler(podcastSearcher PodcastSearch) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-
 		ctx := appengine.NewContext(r)
 		var term = r.FormValue("term")
-		podcasts, err := podcastSearcher.Search(ctx, term)
-		if err != nil {
-			w.WriteHeader(http.StatusInternalServerError)
-			panic(err)
-		}
 
-		w.WriteHeader(http.StatusOK)
-		w.Header().Set("Content-Type", "application/json; charset=UTF-8")
-		if jsonerr := json.NewEncoder(w).Encode(podcasts); jsonerr != nil {
-			w.WriteHeader(http.StatusInternalServerError)
-			panic(jsonerr)
+		if term == "" {
+			w.WriteHeader(http.StatusBadRequest)
+			w.Write([]byte("parameter term is missing e.g. term "))
+		} else {
+
+			var limit = r.FormValue("limit")
+			podcasts, err := podcastSearcher.Search(ctx, term, limit)
+			if err != nil {
+				w.WriteHeader(http.StatusInternalServerError)
+				panic(err)
+			}
+
+			w.WriteHeader(http.StatusOK)
+			w.Header().Set("Content-Type", "application/json; charset=UTF-8")
+			if jsonerr := json.NewEncoder(w).Encode(podcasts); jsonerr != nil {
+				w.WriteHeader(http.StatusInternalServerError)
+				panic(jsonerr)
+			}
 		}
 	}
 }

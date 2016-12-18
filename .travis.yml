@@ -1,0 +1,10 @@
+sudo: false
+language: go
+go: 1.7
+install:
+    - go get -t -v ./...
+    - go get -t github.com/alecthomas/gometalinter	
+    - gometalinter --install --update
+script:
+    - go test -v ./...
+
