@@ -21,10 +21,9 @@ import (
 	"encoding/xml"
 	"io/ioutil"
 	"net/url"
-
 	"golang.org/x/net/context"
-
 	"github.com/te-th/podca-api/domain"
+	"github.com/te-th/podca-api/utility"
 	"google.golang.org/appengine/delay"
 	"google.golang.org/appengine/log"
 	"google.golang.org/appengine/urlfetch"
@@ -36,7 +35,7 @@ type FeedCore interface {
 // PodcastSearch is the facade that handle the usecase
 // of searching podcast for a given term and storing the results into the datastore
 type PodcastSearch interface {
-	Search(ctx context.Context, term string) ([]domain.Podcast, error)
+	Search(ctx context.Context, term string, limit string) ([]domain.Podcast, error)
 }
 
 type PodcastSearcher struct {
@@ -51,8 +50,8 @@ func NewPodcastSearcher(feedTask FeedTask, searchEngine PodcastSearchEngine) *Po
 	}
 }
 
-func (podcastSearcher *PodcastSearcher) Search(ctx context.Context, term string) ([]domain.Podcast, error) {
-	podcasts, err := podcastSearcher.SearchEngine.Search(ctx, term)
+func (podcastSearcher *PodcastSearcher) Search(ctx context.Context, term string, limit string) ([]domain.Podcast, error) {
+	podcasts, err := podcastSearcher.SearchEngine.Search(ctx, term, limit)
 	if err != nil {
 		return nil, err
 	}
@@ -122,14 +121,13 @@ func (worker *FeedTaskWorker) FetchAndStore(ctx context.Context, podcast domain.
 
 	var feed = &rss.Feed
 
-	// Use CollectionId as Feed.id
 	feed.ID = podcast.CollectionID
 
 	worker.FeedRepository.Save(ctx, feed)
 }
 
 type PodcastSearchEngine interface {
-	Search(ctx context.Context, term string) ([]domain.Podcast, error)
+	Search(ctx context.Context, term string, limit string) ([]domain.Podcast, error)
 }
 
 func NewSearchEngine() *ITunesSearchEngine {
@@ -139,10 +137,10 @@ func NewSearchEngine() *ITunesSearchEngine {
 type ITunesSearchEngine struct {
 }
 
-func (searchEngine *ITunesSearchEngine) Search(ctx context.Context, term string) ([]domain.Podcast, error) {
+func (searchEngine *ITunesSearchEngine) Search(ctx context.Context, term string, limit string) ([]domain.Podcast, error) {
 	client := urlfetch.Client(ctx)
 
-	var urlString = "https://itunes.apple.com/search?term=" + url.QueryEscape(term) + "&country=DE&entity=podcast"
+	var urlString = "https://itunes.apple.com/search?limit=" +  url.QueryEscape(utility.CheckLimit(limit)) + "&country=DE&entity=podcast&term=" + url.QueryEscape(term)
 
 	res, err := client.Get(urlString)
 	if err != nil {
