@@ -20,12 +20,16 @@ goapp serve ./app
 ```
 ## Usecase search
 
-`http://localhost:8080/podcasts/search?term=WDR&limit=20`
+```
+http://localhost:8080/podcasts/search?term=WDR&limit=20
+```
 
 ## Usecase feeds:
 
-`http://localhost:8080/feeds`
+```
+http://localhost:8080/feeds
+``` 
 
-# License
+## License
 
 Licensed under Apache License, Version 2.0.
