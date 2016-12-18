@@ -1,8 +1,9 @@
 sudo: false
 language: go
-install:
-    - go get -t github.com/alecthomas/gometalinter
-    - gometalinter --install --update
 go: 1.7
-
+install:
+    - go get -t -v ./...	
+    - gometalinter --install --update
+script:
+    - go test -v ./...
 
