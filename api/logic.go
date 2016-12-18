@@ -50,8 +50,8 @@ func NewPodcastSearcher(feedTask FeedTask, searchEngine PodcastSearchEngine) *Po
 	}
 }
 
-func (podcastSearcher *PodcastSearcher) Search(ctx context.Context, term string) ([]domain.Podcast, error) {
-	podcasts, err := podcastSearcher.SearchEngine.Search(ctx, term)
+func (podcastSearcher *PodcastSearcher) Search(ctx context.Context, term string, limit string) ([]domain.Podcast, error) {
+	podcasts, err := podcastSearcher.SearchEngine.Search(ctx, term, limit)
 	if err != nil {
 		return nil, err
 	}
@@ -127,7 +127,7 @@ func (worker *FeedTaskWorker) FetchAndStore(ctx context.Context, podcast domain.
 }
 
 type PodcastSearchEngine interface {
-	Search(ctx context.Context, term string) ([]domain.Podcast, error)
+	Search(ctx context.Context, term string, limit string) ([]domain.Podcast, error)
 }
 
 func NewSearchEngine() *ITunesSearchEngine {
