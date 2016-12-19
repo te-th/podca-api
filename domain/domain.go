@@ -18,6 +18,7 @@ package domain
 
 import "golang.org/x/net/context"
 
+// Feed represents a Podcast Feed.
 type Feed struct {
 	ID          int64     `json:"id" datastore:"-"`
 	Title       string    `json:"title" xml:"title"`
@@ -30,6 +31,7 @@ type Feed struct {
 	Episodes    []Episode `json:"episodes" xml:"item"`
 }
 
+// Episode represents a Podcast Episode.
 type Episode struct {
 	Title       string `json:"title" xml:"title"`
 	Description string `json:"description" xml:"description" datastore:",noindex"`
@@ -38,6 +40,7 @@ type Episode struct {
 	PubDate     string `json:"pubDate" xml:"pubDate"`
 }
 
+// Image is attached to Feed.
 type Image struct {
 	//Id 	int64	`datastore:"-"`
 	FeeURL string `json:"url" xml:"url"`
@@ -45,7 +48,7 @@ type Image struct {
 	Link   string `json:"link" xml:"link"`
 }
 
-// Podcast struct is strong coupled to the Apple iTunes format
+// Podcast struct is strong coupled to the Apple iTunes format.
 type Podcast struct {
 	ID             int64    `json:"id"`
 	ArtistName     string   `json:"artistName"`
@@ -56,6 +59,7 @@ type Podcast struct {
 	Genres         []string `json:"genres"`
 }
 
+// FeedRepository is responsible for CRUD operations on Feeds.
 type FeedRepository interface {
 	Save(ctx context.Context, feed *Feed) (*Feed, error)
 	Get(ctx context.Context, id int64) (*Feed, error)

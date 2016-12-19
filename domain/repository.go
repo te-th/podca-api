@@ -22,14 +22,15 @@ import (
 	"google.golang.org/appengine/log"
 )
 
-func NewFeedRepo() *FeedRepo {
-	return &FeedRepo{}
+// NewFeedRepo creates a new FeedRepository
+func NewFeedRepo() FeedRepository {
+	return &feedRepo{}
 }
 
-type FeedRepo struct {
+type feedRepo struct {
 }
 
-func (feedRepo *FeedRepo) GetAll(ctx context.Context) ([]Feed, error) {
+func (feedRepo *feedRepo) GetAll(ctx context.Context) ([]Feed, error) {
 	feeds := []Feed{}
 	ks, err := datastore.NewQuery("Feed").Ancestor(feedKey(ctx)).GetAll(ctx, &feeds)
 	if err != nil {
@@ -42,7 +43,7 @@ func (feedRepo *FeedRepo) GetAll(ctx context.Context) ([]Feed, error) {
 	return feeds, nil
 }
 
-func (feedRepo *FeedRepo) Get(ctx context.Context, id int64) (*Feed, error) {
+func (feedRepo *feedRepo) Get(ctx context.Context, id int64) (*Feed, error) {
 	log.Infof(ctx, "FEED: GET")
 	feed := new(Feed)
 	feed.ID = id
@@ -70,7 +71,7 @@ func (feed *Feed) key(ctx context.Context) *datastore.Key {
 	return datastore.NewKey(ctx, "Feed", "", feed.ID, feedKey(ctx))
 }
 
-func (feedRepo *FeedRepo) Save(ctx context.Context, feed *Feed) (*Feed, error) {
+func (feedRepo *feedRepo) Save(ctx context.Context, feed *Feed) (*Feed, error) {
 
 	k, err := datastore.Put(ctx, feed.key(ctx), feed)
 	if err != nil {
