@@ -1,6 +1,5 @@
-podca-api
+podca-api [![Build Status](https://travis-ci.org/te-th/podca-api.svg?branch=master)](https://travis-ci.org/te-th/podca-api)
 ===
-[![Build Status](https://travis-ci.org/te-th/podca-api.svg?branch=master)](https://travis-ci.org/te-th/podca-api)
 
 A minimal repository serving Podcast Feeds as JSON Objects. Build on Google Cloud Platform.
 

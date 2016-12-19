@@ -21,63 +21,68 @@ import (
 	"encoding/xml"
 	"io/ioutil"
 	"net/url"
-	"golang.org/x/net/context"
+
 	"github.com/te-th/podca-api/domain"
+	"github.com/te-th/podca-api/networking"
 	"github.com/te-th/podca-api/utility"
+	"golang.org/x/net/context"
 	"google.golang.org/appengine/delay"
 	"google.golang.org/appengine/log"
-	"github.com/te-th/podca-api/networking"
 )
 
-
+// PodcastSuggestionFacade exposes a search result
 type PodcastSuggestionFacade interface {
 	Suggestion(ctx context.Context, term string, limit string) ([]domain.Podcast, error)
 }
 
-type PodcastSuggestion struct {
+type podcastSuggestion struct {
 	SearchEngine PodcastSearchEngine
 }
 
-func NewPodcastSuggestion(searchEngine PodcastSearchEngine) *PodcastSuggestion {
-	return &PodcastSuggestion{
+// NewPodcastSuggestion creates a new PodcastSuggestionFacade instance
+func NewPodcastSuggestion(searchEngine PodcastSearchEngine) PodcastSuggestionFacade {
+	return &podcastSuggestion{
 		SearchEngine: searchEngine,
 	}
 }
 
-func (suggestion *PodcastSuggestion)  Suggestion(ctx context.Context, term string, limit string) ([]domain.Podcast, error) {
+func (suggestion *podcastSuggestion) Suggestion(ctx context.Context,
+	term string, limit string) ([]domain.Podcast, error) {
+
 	podcasts, err := suggestion.SearchEngine.Search(ctx, term, limit)
 	if err != nil {
 		return nil, err
 	}
-	return  podcasts, nil
+	return podcasts, nil
 }
 
+/*
 type CacheFacade interface {
 	GetOrSet(ctx context.Context, key string, podcasts []domain.Podcast) ([]domain.Podcast, error)
 }
 
-type Cache struct {
-
+type cache struct {
 }
 
-
-func (cache *Cache) GetOrSet(ctx context.Context, key string, podcasts []domain.Podcast) ([]domain.Podcast, error)  {
+func (cache *cache) GetOrSet(ctx context.Context, key string, podcasts []domain.Podcast) ([]domain.Podcast, error) {
 
 	return nil, nil
 }
+*/
 
-
-// PodcastSearch is the facade that handle the usecase
+// PodcastSearchFacade is the facade that handle the usecase
 // of searching podcast for a given term and storing the results into the datastore
 type PodcastSearchFacade interface {
 	Search(ctx context.Context, term string, limit string) ([]domain.Podcast, error)
 }
 
+// PodcastSearch encapsulates FeedTask and SearchEngine capabilities
 type PodcastSearch struct {
 	FeedTask     FeedTaskFacade
 	SearchEngine PodcastSearchEngine
 }
 
+// NewPodcastSearch creates a new PodcastSearchFacade instance
 func NewPodcastSearch(feedTask FeedTaskFacade, searchEngine PodcastSearchEngine) *PodcastSearch {
 	return &PodcastSearch{
 		FeedTask:     feedTask,
@@ -85,6 +90,7 @@ func NewPodcastSearch(feedTask FeedTaskFacade, searchEngine PodcastSearchEngine)
 	}
 }
 
+// Search searches for and persists Podcasts
 func (podcastSearch *PodcastSearch) Search(ctx context.Context, term string, limit string) ([]domain.Podcast, error) {
 	podcasts, err := podcastSearch.SearchEngine.Search(ctx, term, limit)
 	if err != nil {
@@ -103,25 +109,29 @@ func (podcastSearch *PodcastSearch) Search(ctx context.Context, term string, lim
 
 }
 
+// FeedTaskFacade combines fetching and storing of Podcasts
 type FeedTaskFacade interface {
 	FetchAndStore(ctx context.Context, podcast domain.Podcast)
 }
 
+// FeedTask fetches and stores Podcast Feeds
 type FeedTask struct {
 	FeedRepository domain.FeedRepository
-	HttpClient networking.HttpClientFacade
+	HTTPClient     networking.HTTPClientFacade
 }
 
-func NewFeedTask(feedRepo domain.FeedRepository, httpClient networking.HttpClientFacade) *FeedTask {
+// NewFeedTask creates a new FeedTask
+func NewFeedTask(feedRepo domain.FeedRepository, httpClient networking.HTTPClientFacade) *FeedTask {
 	return &FeedTask{
 		FeedRepository: feedRepo,
-		HttpClient: httpClient,
+		HTTPClient:     httpClient,
 	}
 }
 
+// FetchData fetches data from the given url.
 func (task *FeedTask) FetchData(ctx context.Context, url string) ([]byte, error) {
 
-	res, err := task.HttpClient.Get(ctx, url)
+	res, err := task.HTTPClient.Get(ctx, url)
 	if err != nil {
 		return nil, err
 	}
@@ -136,6 +146,7 @@ func (task *FeedTask) FetchData(ctx context.Context, url string) ([]byte, error)
 	return xmlResponse, nil
 }
 
+// FetchAndStore fetches the Feed assigned to given Podcast and persists it.
 func (task *FeedTask) FetchAndStore(ctx context.Context, podcast domain.Podcast) {
 
 	data, fetcherr := task.FetchData(ctx, podcast.FeedURL)
@@ -162,26 +173,32 @@ func (task *FeedTask) FetchAndStore(ctx context.Context, podcast domain.Podcast)
 	task.FeedRepository.Save(ctx, feed)
 }
 
+// PodcastSearchEngine searches for Podcasts with the given term.
 type PodcastSearchEngine interface {
 	Search(ctx context.Context, term string, limit string) ([]domain.Podcast, error)
 }
 
-func NewSearchEngine(httpClient networking.HttpClientFacade) *ITunesSearchEngine {
-	return &ITunesSearchEngine{
-		HttpClient: httpClient,
+// NewSearchEngine creates a new ITunesSearchEngine instance.
+func NewSearchEngine(httpClient networking.HTTPClientFacade) PodcastSearchEngine {
+	return &iTunesSearchEngine{
+		HTTPClient: httpClient,
 	}
 }
 
-type ITunesSearchEngine struct {
-	HttpClient networking.HttpClientFacade
+type iTunesSearchEngine struct {
+	HTTPClient networking.HTTPClientFacade
 }
 
-func (searchEngine *ITunesSearchEngine) Search(ctx context.Context, term string, limit string) ([]domain.Podcast, error) {
+// Search finds Podcasts with the given term.
+func (searchEngine *iTunesSearchEngine) Search(ctx context.Context,
+	term string, limit string) ([]domain.Podcast, error) {
 
+	var urlString = "https://itunes.apple.com/search?limit=" +
+		url.QueryEscape(utility.CheckLimit(limit)) +
+		"&country=DE&entity=podcast&term=" +
+		url.QueryEscape(term)
 
-	var urlString = "https://itunes.apple.com/search?limit=" +  url.QueryEscape(utility.CheckLimit(limit)) + "&country=DE&entity=podcast&term=" + url.QueryEscape(term)
-
-	res, err := searchEngine.HttpClient.Get(ctx, urlString)
+	res, err := searchEngine.HTTPClient.Get(ctx, urlString)
 	if err != nil {
 		return nil, err
 	}

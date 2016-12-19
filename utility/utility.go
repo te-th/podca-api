@@ -13,21 +13,22 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 */
+
 package utility
 
 import (
 	"strconv"
 )
 
-// Checks and return if a string is an integer between 0... 50
+// CheckLimit checks and return if a string is an integer between 0... 50
 func CheckLimit(value string) string {
-	limit, err := strconv.Atoi(value); if err != nil {
-		return  "50"
+	limit, err := strconv.Atoi(value)
+	if err != nil {
+		return "50"
 	}
-	if (0 < limit && limit < 50 ) {
+	if 0 < limit && limit < 50 {
 		return strconv.Itoa(limit)
 	}
 
-	return  "50"
+	return "50"
 }
-

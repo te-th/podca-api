@@ -18,22 +18,25 @@ package networking
 
 import (
 	"net/http"
+
 	"golang.org/x/net/context"
 	"google.golang.org/appengine/urlfetch"
 )
 
-type HttpClientFacade interface {
+// HTTPClientFacade encapsulates HTTP methods
+type HTTPClientFacade interface {
 	Get(ctx context.Context, url string) (*http.Response, error)
 }
 
-type HttpClient struct {
+type httpClient struct {
 }
 
-func NewHttpClient() *HttpClient {
-	return &HttpClient{}
+// NewHTTPClient creates a new HTTPClientFacade instance
+func NewHTTPClient() HTTPClientFacade {
+	return &httpClient{}
 }
 
-func (httpClient *HttpClient) Get(ctx context.Context, url string) (*http.Response, error) {
+func (httpClient *httpClient) Get(ctx context.Context, url string) (*http.Response, error) {
 	client := urlfetch.Client(ctx)
 	return client.Get(url)
 }

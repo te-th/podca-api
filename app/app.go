@@ -18,6 +18,7 @@ package app
 
 import (
 	"net/http"
+
 	"github.com/gorilla/mux"
 	"github.com/te-th/podca-api/api"
 	"github.com/te-th/podca-api/domain"
@@ -26,7 +27,7 @@ import (
 
 func init() {
 	// Dependencies
-	httpClient := networking.NewHttpClient()
+	httpClient := networking.NewHTTPClient()
 	feedRepo := domain.NewFeedRepo()
 	feedTask := api.NewFeedTask(feedRepo, httpClient)
 	searchEngine := api.NewSearchEngine(httpClient)
