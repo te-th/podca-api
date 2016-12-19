@@ -28,22 +28,43 @@ import (
 
 func RootHandler() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		w.Write([]byte("API Podca "))
+		w.Write([]byte("API Podca"))
 	}
 }
 
-func PodcastSearchHandler(podcastSearcher PodcastSearch) http.HandlerFunc {
+func PodcastSuggestionHandler(podcastSuggestion PodcastSuggestionFacade) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		ctx := appengine.NewContext(r)
+		var term = r.FormValue("term")
+		var limit = r.FormValue("limit")
+		podcasts, err := podcastSuggestion.Suggestion(ctx, term, limit)
+
+		if err != nil {
+			w.WriteHeader(http.StatusInternalServerError)
+			panic(err)
+		}
+
+		w.WriteHeader(http.StatusOK)
+		w.Header().Set("Content-Type", "application/json; charset=UTF-8")
+		if jsonerr := json.NewEncoder(w).Encode(podcasts); jsonerr != nil {
+			w.WriteHeader(http.StatusInternalServerError)
+			panic(jsonerr)
+		}
+	}
+}
+
+func PodcastSearchHandler(podcastSearch PodcastSearchFacade) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		ctx := appengine.NewContext(r)
 		var term = r.FormValue("term")
 
 		if term == "" {
 			w.WriteHeader(http.StatusBadRequest)
-			w.Write([]byte("parameter term is missing e.g. term "))
+			w.Write([]byte("parameter term is missing e.g. term=WDR "))
 		} else {
 
 			var limit = r.FormValue("limit")
-			podcasts, err := podcastSearcher.Search(ctx, term, limit)
+			podcasts, err := podcastSearch.Search(ctx, term, limit)
 			if err != nil {
 				w.WriteHeader(http.StatusInternalServerError)
 				panic(err)

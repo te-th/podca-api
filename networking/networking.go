@@ -13,21 +13,27 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 */
-package utility
+
+package networking
 
 import (
-	"strconv"
+	"net/http"
+	"golang.org/x/net/context"
+	"google.golang.org/appengine/urlfetch"
 )
 
-// Checks and return if a string is an integer between 0... 50
-func CheckLimit(value string) string {
-	limit, err := strconv.Atoi(value); if err != nil {
-		return  "50"
-	}
-	if (0 < limit && limit < 50 ) {
-		return strconv.Itoa(limit)
-	}
-
-	return  "50"
+type HttpClientFacade interface {
+	Get(ctx context.Context, url string) (*http.Response, error)
 }
 
+type HttpClient struct {
+}
+
+func NewHttpClient() *HttpClient {
+	return &HttpClient{}
+}
+
+func (httpClient *HttpClient) Get(ctx context.Context, url string) (*http.Response, error) {
+	client := urlfetch.Client(ctx)
+	return client.Get(url)
+}

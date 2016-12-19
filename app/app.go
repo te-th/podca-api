@@ -18,26 +18,27 @@ package app
 
 import (
 	"net/http"
-
 	"github.com/gorilla/mux"
-
 	"github.com/te-th/podca-api/api"
-
 	"github.com/te-th/podca-api/domain"
+	"github.com/te-th/podca-api/networking"
 )
 
 func init() {
-	// Dependencies PodcastSearcher
+	// Dependencies
+	httpClient := networking.NewHttpClient()
 	feedRepo := domain.NewFeedRepo()
-	feedWorker := api.NewFeedTaskWorker(feedRepo)
-	searchEngine := api.NewSearchEngine()
+	feedTask := api.NewFeedTask(feedRepo, httpClient)
+	searchEngine := api.NewSearchEngine(httpClient)
 
-	podcastSearcher := api.NewPodcastSearcher(feedWorker, searchEngine)
+	podcastSuggestion := api.NewPodcastSuggestion(searchEngine)
+	podcastSearch := api.NewPodcastSearch(feedTask, searchEngine)
 
 	router := mux.NewRouter()
 
 	router.HandleFunc("/", api.RootHandler())
-	router.HandleFunc("/podcasts/search", api.PodcastSearchHandler(podcastSearcher))
+	router.HandleFunc("/podcasts/search", api.PodcastSearchHandler(podcastSearch))
+	router.HandleFunc("/podcasts/suggestion", api.PodcastSuggestionHandler(podcastSuggestion))
 	router.HandleFunc("/feeds", api.FeedHandler(feedRepo))
 	router.HandleFunc("/feeds/{feedId}", api.FeedHandler(feedRepo))
 	router.HandleFunc("/feed/{feedId}/episodes/{episodeId}", api.FeedEpisodeHandler())
