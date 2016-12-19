@@ -20,18 +20,21 @@ import (
 	"encoding/json"
 	"net/http"
 	"strconv"
+
 	"github.com/gorilla/mux"
 	"github.com/te-th/podca-api/domain"
 	"google.golang.org/appengine"
 	"google.golang.org/appengine/log"
 )
 
+// RootHandler is a http.HandlerFunc serving request against "/".
 func RootHandler() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		w.Write([]byte("API Podca "))
 	}
 }
 
+// PodcastSearchHandler is a http.HandlerFunc looking up Podcast through the given searcher and exposes the result.
 func PodcastSearchHandler(podcastSearcher PodcastSearch) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		ctx := appengine.NewContext(r)
@@ -59,6 +62,7 @@ func PodcastSearchHandler(podcastSearcher PodcastSearch) http.HandlerFunc {
 	}
 }
 
+// FeedHandler is a http.HandlerFunc serving a Feed with a given ID.
 func FeedHandler(feedRepo domain.FeedRepository) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 
@@ -67,10 +71,10 @@ func FeedHandler(feedRepo domain.FeedRepository) http.HandlerFunc {
 			ctx := appengine.NewContext(r)
 			vars := mux.Vars(r)
 
-			feedId, _ := strconv.Atoi(vars["feedId"])
-			if feedId > 0 {
-				log.Infof(ctx, "FEEDID> %d", int64(feedId))
-				result, _ := feedRepo.Get(ctx, int64(feedId))
+			feedID, _ := strconv.Atoi(vars["feedId"])
+			if feedID > 0 {
+				log.Infof(ctx, "FEEDID> %d", int64(feedID))
+				result, _ := feedRepo.Get(ctx, int64(feedID))
 				w.WriteHeader(http.StatusOK)
 				w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 				if jsonerr := json.NewEncoder(w).Encode(result); jsonerr != nil {
@@ -101,12 +105,14 @@ func FeedHandler(feedRepo domain.FeedRepository) http.HandlerFunc {
 	}
 }
 
+// FeedImageHandler is a http.HandlerFunc serving FeedImages.
 func FeedImageHandler() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		w.Write([]byte("API Podca "))
 	}
 }
 
+// FeedEpisodeHandler is a http.HandlerFunc serving FeedEpisodes.
 func FeedEpisodeHandler() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		w.Write([]byte("API Podca "))
