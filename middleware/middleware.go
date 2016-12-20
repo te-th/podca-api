@@ -14,27 +14,23 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package app
+package middleware
 
 import (
 	"net/http"
 
-	"errors"
+	"golang.org/x/net/context"
 
-	"github.com/gorilla/mux"
-	"github.com/te-th/podca-api/api"
+	"google.golang.org/appengine"
 )
 
-func init() {
-	router := mux.NewRouter()
+// ServeWithContext abstracts a context.Context aware function
+type ServeWithContext func(context.Context, http.ResponseWriter, *http.Request)
 
-	handler := api.Handler()
-	if len(api.Handler()) == 0 {
-		panic(errors.New("No handlers registered. Will exit."))
+// ServeHTTP create and returns a http.HandlerFunc, creates a context.Context and invokes the given function
+func ServeHTTP(serve ServeWithContext) http.HandlerFunc {
+	return func(writer http.ResponseWriter, request *http.Request) {
+		ctx := appengine.NewContext(request)
+		serve(ctx, writer, request)
 	}
-
-	for path, handler := range handler {
-		router.HandleFunc(path, handler)
-	}
-	http.Handle("/", router)
 }

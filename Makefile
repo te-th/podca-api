@@ -6,7 +6,7 @@ compile:
 # run go metalinter
 .PHONY: lint
 lint:	compile
-	@gometalinter --disable-all --enable=structcheck --enable=aligncheck --enable=deadcode --enable=gocyclo --enable=ineffassign --enable=dupl --enable=golint --enable=gotype --enable=goimports --enable=varcheck --enable=interfacer --enable=goconst --enable=gosimple --enable=staticcheck --enable=unused --enable=misspell --enable=lll --line-length=120 --deadline=20s ./...
+	@gometalinter --disable-all --enable=structcheck --enable=aligncheck --enable=deadcode --enable=gocyclo --enable=ineffassign --enable=dupl --enable=golint --enable=goimports --enable=varcheck --enable=interfacer --enable=goconst --enable=gosimple --enable=staticcheck --enable=unused --enable=misspell --enable=lll --line-length=120 --deadline=30s ./...
 
 # run tests
 .PHONY: test

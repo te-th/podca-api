@@ -14,27 +14,18 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package app
+package root
 
 import (
 	"net/http"
 
-	"errors"
-
-	"github.com/gorilla/mux"
-	"github.com/te-th/podca-api/api"
+	"github.com/te-th/podca-api/middleware"
+	"golang.org/x/net/context"
 )
 
-func init() {
-	router := mux.NewRouter()
-
-	handler := api.Handler()
-	if len(api.Handler()) == 0 {
-		panic(errors.New("No handlers registered. Will exit."))
-	}
-
-	for path, handler := range handler {
-		router.HandleFunc(path, handler)
-	}
-	http.Handle("/", router)
+// Resource creates a http.HandlerFunc serving request against "/".
+func Resource() http.HandlerFunc {
+	return middleware.ServeHTTP(func(ctx context.Context, w http.ResponseWriter, r *http.Request) {
+		w.Write([]byte("API Podca"))
+	})
 }
