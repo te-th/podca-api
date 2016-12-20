@@ -14,29 +14,23 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package networking
+package middleware
 
 import (
 	"net/http"
 
 	"golang.org/x/net/context"
-	"google.golang.org/appengine/urlfetch"
+
+	"google.golang.org/appengine"
 )
 
-// HTTPClientFacade encapsulates HTTP methods
-type HTTPClientFacade interface {
-	Get(ctx context.Context, url string) (*http.Response, error)
-}
+// ServeWithContext abstracts a context.Context aware function
+type ServeWithContext func(context.Context, http.ResponseWriter, *http.Request)
 
-type httpClient struct {
-}
-
-// NewHTTPClient creates a new HTTPClientFacade instance
-func NewHTTPClient() HTTPClientFacade {
-	return &httpClient{}
-}
-
-func (httpClient *httpClient) Get(ctx context.Context, url string) (*http.Response, error) {
-	client := urlfetch.Client(ctx)
-	return client.Get(url)
+// ServeHTTP create and returns a http.HandlerFunc, creates a context.Context and invokes the given function
+func ServeHTTP(serve ServeWithContext) http.HandlerFunc {
+	return func(writer http.ResponseWriter, request *http.Request) {
+		ctx := appengine.NewContext(request)
+		serve(ctx, writer, request)
+	}
 }

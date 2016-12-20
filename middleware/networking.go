@@ -14,27 +14,29 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package app
+package middleware
 
 import (
 	"net/http"
 
-	"errors"
-
-	"github.com/gorilla/mux"
-	"github.com/te-th/podca-api/api"
+	"golang.org/x/net/context"
+	"google.golang.org/appengine/urlfetch"
 )
 
-func init() {
-	router := mux.NewRouter()
+// HTTPClientFacade encapsulates HTTP methods
+type HTTPClientFacade interface {
+	Get(ctx context.Context, url string) (*http.Response, error)
+}
 
-	handler := api.Handler()
-	if len(api.Handler()) == 0 {
-		panic(errors.New("No handlers registered. Will exit."))
-	}
+type httpClient struct {
+}
 
-	for path, handler := range handler {
-		router.HandleFunc(path, handler)
-	}
-	http.Handle("/", router)
+// NewHTTPClient creates a new HTTPClientFacade instance
+func NewHTTPClient() HTTPClientFacade {
+	return &httpClient{}
+}
+
+func (httpClient *httpClient) Get(ctx context.Context, url string) (*http.Response, error) {
+	client := urlfetch.Client(ctx)
+	return client.Get(url)
 }

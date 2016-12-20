@@ -5,7 +5,7 @@ Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
 You may obtain a copy of the License at
 
-    http://www.apache.org/licenses/LICENSE-2.0
+    http://wwresponseWriter.apache.org/licenses/LICENSE-2.0
 
 Unless required by applicable law or agreed to in writing, software
 distributed under the License is distributed on an "AS IS" BASIS,
@@ -14,9 +14,36 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package domain
+package feed
 
-import "golang.org/x/net/context"
+import (
+	"net/http"
+
+	"github.com/te-th/podca-api/middleware"
+	"golang.org/x/net/context"
+)
+
+// Handler is a http.HandlerFunc serving a Feed with a given ID.
+func Handler(feedRepository Repository) http.HandlerFunc {
+	return middleware.ServeHTTP(func(ctx context.Context, responseWriter http.ResponseWriter, request *http.Request) {
+		feed := &feedresource{ctx: ctx, repository: feedRepository}
+		feed.resource(responseWriter, request)
+	})
+}
+
+// ImageHandler is a http.HandlerFunc serving FeedImages.
+func ImageHandler() http.HandlerFunc {
+	return middleware.ServeHTTP(func(ctx context.Context, responseWriter http.ResponseWriter, request *http.Request) {
+		responseWriter.Write([]byte("API Podca "))
+	})
+}
+
+// EpisodeHandler is a http.HandlerFunc serving FeedEpisodes.
+func EpisodeHandler() http.HandlerFunc {
+	return middleware.ServeHTTP(func(ctx context.Context, responseWriter http.ResponseWriter, request *http.Request) {
+		responseWriter.Write([]byte("API Podca "))
+	})
+}
 
 // Feed represents a Podcast Feed.
 type Feed struct {
@@ -48,19 +75,8 @@ type Image struct {
 	Link   string `json:"link" xml:"link"`
 }
 
-// Podcast struct is strong coupled to the Apple iTunes format.
-type Podcast struct {
-	ID             int64    `json:"id"`
-	ArtistName     string   `json:"artistName"`
-	CollectionName string   `json:"collectionName"`
-	FeedURL        string   `json:"feedUrl"`
-	CollectionID   int64    `json:"collectionId"`
-	TrackID        int64    `json:"trackId"`
-	Genres         []string `json:"genres"`
-}
-
-// FeedRepository is responsible for CRUD operations on Feeds.
-type FeedRepository interface {
+// Repository is responsible for CRUD operations on Feeds.
+type Repository interface {
 	Save(ctx context.Context, feed *Feed) (*Feed, error)
 	Get(ctx context.Context, id int64) (*Feed, error)
 	GetAll(ctx context.Context) ([]Feed, error)

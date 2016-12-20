@@ -14,7 +14,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package domain
+package feed
 
 import (
 	"golang.org/x/net/context"
@@ -23,7 +23,7 @@ import (
 )
 
 // NewFeedRepo creates a new FeedRepository
-func NewFeedRepo() FeedRepository {
+func NewFeedRepo() Repository {
 	return &feedRepo{}
 }
 
